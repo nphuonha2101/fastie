@@ -92,6 +92,17 @@ alembic upgrade head
 ```
 
 ### 6. Chạy ứng dụng
+
+#### Sử dụng Fastie CLI (Recommended)
+```bash
+# Chạy development server với auto-reload
+python fastie.py serve --reload
+
+# Chạy production server
+python fastie.py serve --host 0.0.0.0 --port 8000
+```
+
+#### Sử dụng Uvicorn trực tiếp
 ```bash
 # Development mode với auto-reload
 uvicorn app.main:app --reload --port 8000
@@ -165,6 +176,26 @@ CREATE TABLE users (
 ## 🔧 Database Migration
 
 ### Quản lý Migration
+
+#### Sử dụng Fastie CLI
+```bash
+# Tạo migration mới
+python fastie.py make migration create_posts_table --table posts
+
+# Chạy migrations
+python fastie.py db migrate
+
+# Rollback migrations
+python fastie.py db rollback --steps 2
+
+# Reset database
+python fastie.py db reset
+
+# Xem status migrations
+python fastie.py db status
+```
+
+#### Sử dụng Alembic trực tiếp
 ```bash
 # Xem migration history
 alembic history
@@ -204,6 +235,109 @@ Framework sử dụng decorator-based DI system với auto-discovery:
 class UserAccountController(BaseController):
     def __init__(self, user_service: IUserService):
         self.user_service = user_service
+```
+
+## ⚡ Fastie CLI - Laravel Artisan cho Python
+
+Fastie framework đi kèm với một CLI tool mạnh mẽ giống như Laravel Artisan để tự động hóa các tác vụ development.
+
+### Khởi tạo Project mới
+```bash
+# Tạo project mới với MySQL
+python fastie.py new my_project --database mysql
+
+# Tạo project với SQLite
+python fastie.py new my_project --database sqlite
+
+# Tạo project với authentication boilerplate
+python fastie.py new my_project --auth
+```
+
+### Database Commands
+```bash
+# Migration commands
+python fastie.py db migrate          # Chạy migrations
+python fastie.py db rollback         # Rollback 1 step
+python fastie.py db rollback -s 3    # Rollback 3 steps
+python fastie.py db reset            # Reset database
+python fastie.py db status           # Xem migration status
+```
+
+### Code Generation Commands
+```bash
+# Tạo migration
+python fastie.py make migration create_posts_table --table posts
+
+# Tạo model
+python fastie.py make model Post --fields "title:str,content:str,is_published:bool"
+
+# Tạo controller
+python fastie.py make controller Post                    # Simple controller
+python fastie.py make controller Post --resource         # Resource controller với CRUD
+
+# Tạo service
+python fastie.py make service Post
+
+# Tạo repository
+python fastie.py make repository Post
+
+# Tạo schema
+python fastie.py make schema Post --type request         # Request schema
+python fastie.py make schema Post --type response       # Response schema
+python fastie.py make schema Post --type model          # Model schema
+```
+
+### Server Commands
+```bash
+# Start development server
+python fastie.py serve --reload
+
+# Start production server
+python fastie.py serve --host 0.0.0.0 --port 8000
+
+# Xem tất cả routes
+python fastie.py routes
+```
+
+### Utility Commands
+```bash
+# Install dependencies
+python fastie.py install
+
+# Xem help
+python fastie.py --help
+python fastie.py make --help
+python fastie.py db --help
+
+# Chạy demo CLI
+python demo.py
+
+# Cleanup demo files
+python cleanup_demo.py
+```
+
+### Workflow ví dụ - Tạo Blog Post feature
+```bash
+# 1. Tạo model và migration
+python fastie.py make model Post --fields "title:str,content:str,slug:str,is_published:bool"
+python fastie.py make migration create_posts_table --table posts
+
+# 2. Tạo schemas
+python fastie.py make schema Post --type request
+python fastie.py make schema Post --type response
+
+# 3. Tạo repository và service
+python fastie.py make repository Post
+python fastie.py make service Post
+
+# 4. Tạo controller với CRUD methods
+python fastie.py make controller Post --resource
+
+# 5. Chạy migration
+python fastie.py db:migrate
+
+# 6. Start server
+python fastie.py serve --reload
 ```
 
 ## 🛠️ Development Guide
