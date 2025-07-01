@@ -1,0 +1,78 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Byte-compiled / optimized / DLL files
+*.so
+*.dylib
+*.dll
+*.pyd
+*.pyc
+*.pyo
+
+# Cython debug symbols
+cython_debug/
+
+# Virtual environment
+venv/
+env/
+.venv/
+.env/
+ENV/
+.Python
+
+# pipenv / poetry
+Pipfile.lock
+poetry.lock
+
+# pyenv
+.python-version
+
+# mypy / pyright
+.mypy_cache/
+.pyright/
+
+# FastAPI static / temp
+instance/
+staticfiles/
+media/
+
+# dotenv files
+.env
+.env.*
+
+# VSCode
+.vscode/
+.code-workspace
+
+# PyCharm
+.idea/
+
+# Testing / coverage
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+.coverage
+.cache/
+.pytest_cache/
+
+# Logs
+*.log
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker
+*.pid
+docker-compose.override.yml
