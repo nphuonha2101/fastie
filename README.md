@@ -86,7 +86,7 @@ DATABASE_URL=mysql+pymysql://username:password@localhost:3306/fastie_db
 # Chạy migration hiện có
 alembic upgrade head
 
-# Tạo migration mới (nếu có thay đổi model)
+# Tạo migration mới (nếu có thay đổi model - tạm thời chưa hoạt động. Đề xuất sử dụng create revision thủ công)
 alembic revision --autogenerate -m "Description"
 alembic upgrade head
 ```
@@ -112,7 +112,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
 **Truy cập ứng dụng:**
-- API: `http://localhost:8000`
+- API: `http://localhost:8000/api/v1`
 - Interactive API Docs: `http://localhost:8000/docs`
 - ReDoc Documentation: `http://localhost:8000/redoc`
 
