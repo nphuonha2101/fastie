@@ -179,8 +179,11 @@ CREATE TABLE users (
 
 #### Sử dụng Fastie CLI
 ```bash
-# Tạo migration mới
+# Tạo migration với autogenerate (phát hiện changes từ models)
 python fastie.py make migration create_posts_table --table posts
+
+# Tạo empty migration để viết migration operations thủ công
+python fastie.py make migration "add indexes" --empty
 
 # Chạy migrations
 python fastie.py db migrate
@@ -265,8 +268,11 @@ python fastie.py db status           # Xem migration status
 
 ### Code Generation Commands
 ```bash
-# Tạo migration
+# Tạo migration với autogenerate (detect changes từ models)
 python fastie.py make migration create_posts_table --table posts
+
+# Tạo empty migration để viết thủ công
+python fastie.py make migration "add custom constraint" --empty
 
 # Tạo model
 python fastie.py make model Post --fields "title:str,content:str,is_published:bool"
@@ -295,8 +301,21 @@ python fastie.py serve --reload
 # Start production server
 python fastie.py serve --host 0.0.0.0 --port 8000
 
-# Xem tất cả routes
+# Xem tất cả routes với thống kê
 python fastie.py routes
+```
+
+### Route Inspection Commands
+```bash
+# List all routes với table format
+python fastie.py routes
+
+# Detailed route inspection với filters
+python fastie.py route-list --detail                    # Show tất cả routes với details
+python fastie.py route-list --method POST               # Filter theo HTTP method
+python fastie.py route-list --path "/api/v1/user"       # Filter theo path pattern
+python fastie.py route-list --tag Auth                  # Filter theo tag
+python fastie.py route-list --method GET --detail       # Combine filters với detailed output
 ```
 
 ### Utility Commands
@@ -304,10 +323,11 @@ python fastie.py routes
 # Install dependencies
 python fastie.py install
 
-# Xem help
+# Xem help cho tất cả commands
 python fastie.py --help
 python fastie.py make --help
 python fastie.py db --help
+python fastie.py route-list --help
 
 # Chạy demo CLI
 python demo.py

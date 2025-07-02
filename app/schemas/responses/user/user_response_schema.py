@@ -1,4 +1,5 @@
 from pydantic import EmailStr, ConfigDict, BaseModel
+from typing import Optional
 
 
 class UserResponseSchema(BaseModel):
@@ -8,7 +9,7 @@ class UserResponseSchema(BaseModel):
     id: int
     name: str
     email: EmailStr
-    is_active: int = 1
-    avatar: str
+    is_active: bool = True
+    avatar: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
