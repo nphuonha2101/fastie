@@ -28,15 +28,26 @@ def cli():
 @click.argument('project_name')
 @click.option('--database', '-d', default='mysql', help='Database type (mysql, sqlite, postgres)')
 @click.option('--auth', is_flag=True, help='Include authentication boilerplate')
-def new(project_name, database, auth):
+@click.option('--path', '-p', help='Target directory path (default: current directory)')
+def new(project_name, database, auth, path):
     """Create a new Fastie project"""
     click.echo(f"🚀 Creating new Fastie project: {project_name}")
     
     try:
-        # Create project directory
-        project_path = Path(project_name)
+        # Determine project path
+        if path:
+            # Create project in specified path
+            target_dir = Path(path).resolve()
+            if not target_dir.exists():
+                target_dir.mkdir(parents=True, exist_ok=True)
+                click.echo(f"📁 Created directory: {target_dir}")
+            project_path = target_dir / project_name
+        else:
+            # Create project in current directory (default behavior)
+            project_path = Path(project_name)
+            
         if project_path.exists():
-            click.echo(f"❌ Directory {project_name} already exists!")
+            click.echo(f"❌ Directory {project_path} already exists!")
             return
         
         # Copy current project structure as template
@@ -59,9 +70,9 @@ def new(project_name, database, auth):
             with open(readme_path, 'w', encoding='utf-8') as f:
                 f.write(content)
         
-        click.echo(f"✅ Project {project_name} created successfully!")
+        click.echo(f"✅ Project {project_name} created successfully at: {project_path.resolve()}")
         click.echo(f"📁 Next steps:")
-        click.echo(f"   cd {project_name}")
+        click.echo(f"   cd {project_path}")
         click.echo(f"   python -m venv venv")
         click.echo(f"   # Activate venv and install dependencies")
         click.echo(f"   pip install -r requirements.txt")
