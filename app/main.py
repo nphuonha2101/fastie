@@ -1,5 +1,8 @@
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from starlette.staticfiles import StaticFiles
+
+from app.core.paths.resource import __resources_path__
 from app.core.providers.app_service_providers import initialize_application
 from app.routes.api import register_routes
 
@@ -7,4 +10,5 @@ load_dotenv()
 initialize_application()
 app = FastAPI()
 
+app.mount("/static", StaticFiles(directory=f"{__resources_path__()}/public"), name="static")
 register_routes(app)
