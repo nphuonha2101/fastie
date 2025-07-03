@@ -1,13 +1,20 @@
+# Core Framework
 fastapi
-router
 uvicorn
-alembic
+pydantic
+python-dotenv
+
+# Database
 sqlalchemy
 pymysql
-python-dotenv
-pydantic
-email-validator
-python-jose[cryptography]
+alembic
+
+# Authentication & Security  
+pyjwt
 passlib[bcrypt]
-click
+email-validator
+
+# Optional: Advanced Caching (uncomment if needed)
+# redis
+# aioredis
 

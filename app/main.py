@@ -6,6 +6,8 @@ from app.core.paths.resource import __resources_path__
 from app.core.providers.app_service_providers import initialize_application
 from app.routes.api import register_routes
 
+import app.api.v1.middlewares
+
 load_dotenv()
 initialize_application()
 app = FastAPI()
