@@ -14,6 +14,9 @@ pyjwt
 passlib[bcrypt]
 email-validator
 
+# Template Engine
+mako
+
 # Optional: Advanced Caching (uncomment if needed)
 # redis
 # aioredis

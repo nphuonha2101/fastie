@@ -12,6 +12,14 @@ from datetime import datetime
 import subprocess
 import shutil
 
+# Import template engine
+try:
+    from template_engine import render_template, get_template_helpers
+    TEMPLATES_AVAILABLE = True
+except ImportError:
+    TEMPLATES_AVAILABLE = False
+    click.echo("⚠️  Mako templates not available - falling back to inline templates")
+
 
 @click.group()
 @click.version_option(version='1.0.0', prog_name='Fastie CLI')
@@ -736,7 +744,16 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 
 def _generate_controller_template(name, resource):
-    """Generate controller template"""
+    """Generate controller template using Mako templates"""
+    if TEMPLATES_AVAILABLE:
+        try:
+            template_name = "controller/resource_controller.mako" if resource else "controller/simple_controller.mako"
+            return render_template(template_name, name=name, resource=resource)
+        except Exception as e:
+            click.echo(f"⚠️  Template error: {e}")
+            click.echo("📄 Falling back to inline template...")
+    
+    # Fallback to inline template
     class_name = f"{name.title()}Controller"
     service_interface = f"I{name.title()}Service"
     
@@ -819,7 +836,14 @@ class {class_name}(BaseController, ABC):
 
 
 def _generate_service_interface_template(name):
-    """Generate service interface template"""
+    """Generate service interface template using Mako templates"""
+    if TEMPLATES_AVAILABLE:
+        try:
+            return render_template("service/interface.mako", name=name)
+        except Exception as e:
+            click.echo(f"⚠️  Template error: {e}")
+    
+    # Fallback to inline template
     return f'''from app.services.interfaces.i_service import IService
 
 class I{name.title()}Service(IService):
@@ -829,7 +853,14 @@ class I{name.title()}Service(IService):
 
 
 def _generate_service_implementation_template(name):
-    """Generate service implementation template"""
+    """Generate service implementation template using Mako templates"""
+    if TEMPLATES_AVAILABLE:
+        try:
+            return render_template("service/implementation.mako", name=name)
+        except Exception as e:
+            click.echo(f"⚠️  Template error: {e}")
+    
+    # Fallback to inline template
     return f'''from app.core.decorators.di import service
 from app.repositories.interfaces.{name.lower()}.i_{name.lower()}_repository import I{name.title()}Repository
 from app.services.implements.service import Service
@@ -844,7 +875,14 @@ class {name.title()}Service(Service, I{name.title()}Service):
 
 
 def _generate_repository_interface_template(name):
-    """Generate repository interface template"""
+    """Generate repository interface template using Mako templates"""
+    if TEMPLATES_AVAILABLE:
+        try:
+            return render_template("repository/interface.mako", name=name)
+        except Exception as e:
+            click.echo(f"⚠️  Template error: {e}")
+    
+    # Fallback to inline template
     return f'''from app.repositories.interfaces.i_repository import IRepository
 
 class I{name.title()}Repository(IRepository):
@@ -854,7 +892,14 @@ class I{name.title()}Repository(IRepository):
 
 
 def _generate_repository_implementation_template(name):
-    """Generate repository implementation template"""
+    """Generate repository implementation template using Mako templates"""
+    if TEMPLATES_AVAILABLE:
+        try:
+            return render_template("repository/implementation.mako", name=name)
+        except Exception as e:
+            click.echo(f"⚠️  Template error: {e}")
+    
+    # Fallback to inline template
     return f'''from app.core.decorators.di import repository
 from app.repositories.implements.repository import Repository
 from app.repositories.interfaces.{name.lower()}.i_{name.lower()}_repository import I{name.title()}Repository
@@ -869,7 +914,14 @@ class {name.title()}Repository(Repository, I{name.title()}Repository):
 
 
 def _generate_model_template(name, fields):
-    """Generate model template"""
+    """Generate model template using Mako templates"""
+    if TEMPLATES_AVAILABLE:
+        try:
+            return render_template("model/base_model.mako", name=name, fields=fields)
+        except Exception as e:
+            click.echo(f"⚠️  Template error: {e}")
+    
+    # Fallback to inline template
     class_name = _to_class_name(name)
     template = f'''from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from app.models.abstract_model import AbstractModel
@@ -905,7 +957,20 @@ class {class_name}(AbstractModel):
 
 
 def _generate_schema_template(name, schema_type):
-    """Generate schema template"""
+    """Generate schema template using Mako templates"""
+    if TEMPLATES_AVAILABLE:
+        try:
+            template_map = {
+                'response': 'schema/response.mako',
+                'request': 'schema/request.mako',
+                'model': 'schema/base.mako'
+            }
+            template_name = template_map.get(schema_type, 'schema/base.mako')
+            return render_template(template_name, name=name, schema_type=schema_type)
+        except Exception as e:
+            click.echo(f"⚠️  Template error: {e}")
+    
+    # Fallback to inline template
     if schema_type == 'response':
         return f'''from pydantic import BaseModel, ConfigDict
 
