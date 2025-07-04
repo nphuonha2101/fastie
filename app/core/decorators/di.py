@@ -51,6 +51,29 @@ def component(cls=None, *, scope: str = Scope.SINGLETON, qualifier: Optional[str
 def infrastructure(cls=None, *, qualifier: Optional[str] = None):
     return component(cls, scope=Scope.SINGLETON, qualifier=qualifier, lazy=False)
 
+def component_decorator(cls=None, *, qualifier: Optional[str] = None):
+    """
+    Component decorator with same priority as infrastructure.
+    Components are eagerly loaded (lazy=False) and singleton scoped.
+
+    Usage examples:
+    @component_decorator
+    class MyComponent:
+        pass
+
+    @component_eager  # Using alias
+    class AnotherComponent:
+        pass
+
+    @component_decorator(qualifier="special")
+    class SpecialComponent:
+        pass
+    """
+    return component(cls, scope=Scope.SINGLETON, qualifier=qualifier, lazy=False)
+
+# Alias for easier usage
+component_eager = component_decorator
+
 def service(cls=None, *, scope: str = Scope.SINGLETON, qualifier: Optional[str] = None, lazy: bool = True):
     return component(cls, scope=scope, qualifier=qualifier, lazy=lazy)
 
@@ -170,6 +193,7 @@ def load_components():
     # Group components by type to avoid multiple iterations
     components_by_type = {
         'Infrastructure': [],
+        'Component': [],
         'Repository': [],
         'Service': [],
         'Controller': []
@@ -185,11 +209,14 @@ def load_components():
             components_by_type['Service'].append(cls)
         elif not meta['lazy'] and any(base.__name__.endswith('Infrastructure') for base in cls.__mro__):
             components_by_type['Infrastructure'].append(cls)
+        elif not meta['lazy']:
+            # Components marked with component_decorator (eager loading)
+            components_by_type['Component'].append(cls)
 
-    # Initialize in the correct order
-    for component_type in ['Infrastructure', 'Repository', 'Service', 'Controller']:
+    # Initialize in the correct order (Component has same priority as Infrastructure)
+    for component_type in ['Infrastructure', 'Component', 'Repository', 'Service', 'Controller']:
         for cls in components_by_type[component_type]:
-            if component_type == 'Infrastructure' and _component_registry[cls]['lazy']:
+            if component_type in ['Infrastructure', 'Component'] and _component_registry[cls]['lazy']:
                 continue
             _initialize_component(cls)
 

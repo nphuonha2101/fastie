@@ -37,5 +37,10 @@ class IService(ABC, Generic[T, TCreate, TUpdate, TResponse]):
 
     @abstractmethod
     def delete(self, id: int) -> None:
+        """Delete a record by ID. (Soft delete)"""
+        pass
+
+    @abstractmethod
+    def force_delete(self, id: int) -> None:
         """Delete a record by ID."""
         pass

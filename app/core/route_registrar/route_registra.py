@@ -32,7 +32,7 @@ class RouteRegistrar:
 
         # Handle middleware dynamically
         final_middlewares = []
-        
+
         if middleware is not None:
             if isinstance(middleware, MiddlewareGroup):
                 # Use middleware group

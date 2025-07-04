@@ -1,3 +1,6 @@
+from typing import Optional
+
+from pydantic import BaseModel
 from sqlalchemy import Column, Integer, func, DateTime
 
 from app.infrastructures.database.database_infrastructure import Base
@@ -9,3 +12,10 @@ class AbstractModel(Base):
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
     deleted_at = Column(DateTime, nullable=True)
+
+    def get_response_model(self) -> Optional[BaseModel]:
+        """
+        Returns the response model for the current model.
+        This method should be overridden in subclasses to provide the specific response model.
+        """
+        raise NotImplementedError("Subclasses must implement this method.")

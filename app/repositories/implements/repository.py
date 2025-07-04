@@ -1,8 +1,9 @@
+import datetime
 from typing import TypeVar, Generic, Optional, List, Literal
 
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
-from sqlalchemy import desc, asc
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import desc, asc, inspect
 
 from app.repositories.interfaces.i_repository import IRepository
 
@@ -29,45 +30,68 @@ class Repository(IRepository[T, TCreate, TUpdate], Generic[T, TCreate, TUpdate])
             skip: int = 0,
             limit: int = 100,
             order_by: Optional[str] = None,
-            order_direction: Literal["asc", "desc"] = "asc"
+            order_direction: Literal["asc", "desc"] = "asc",
+            with_trash: bool = False,
+            eager_relations: Optional[List[str]] = None,
     ) -> List[T]:
         query = self.session.query(self.model_class)
 
+        if eager_relations:
+            for relation in eager_relations:
+                query = query.options(joinedload(getattr(self.model_class, relation)))
+
+        if not with_trash and hasattr(self.model_class, 'deleted_at'):
+            query = query.filter(self.model_class.deleted_at.is_(None))
+
         if order_by:
             column = getattr(self.model_class, order_by)
-            if order_direction == "desc":
-                query = query.order_by(desc(column))
-            else:
-                query = query.order_by(asc(column))
+            query = query.order_by(desc(column) if order_direction == "desc" else asc(column))
 
         return query.offset(skip).limit(limit).all()
 
-    def get_by_id(self, id: int) -> Optional[T]:
-        return self.session.query(self.model_class).filter(self.model_class.id == id).first()
+
+    def get_by_id(
+            self,
+            id: int,
+            with_trash: bool = False,
+            eager_relations: Optional[List[str]] = None,
+    ) -> Optional[T]:
+        query = self.session.query(self.model_class).filter(self.model_class.id == id)
+
+        if eager_relations:
+            for relation in eager_relations:
+                query = query.options(joinedload(getattr(self.model_class, relation)))
+
+        if not with_trash and hasattr(self.model_class, 'deleted_at'):
+            query = query.filter(self.model_class.deleted_at.is_(None))
+
+        return query.first()
+
+
 
     def create(self, data: TCreate) -> T:
         try:
-            # Convert Pydantic model to dict if needed
-            if hasattr(data, 'model_dump'):  # For Pydantic v2
-                item_data = data.model_dump(exclude_unset=True)
-            elif hasattr(data, 'dict'):  # For Pydantic v1
-                item_data = data.dict(exclude_unset=True)
+            # Get raw data from model
+            if hasattr(data, 'model_dump'):
+                raw_data = data.model_dump(exclude_unset=True)
             else:
-                item_data = data
+                raw_data = data.dict(exclude_unset=True)
 
-            # Create and add object within a transaction
+            # Filter valid columns
+            mapper = inspect(self.model_class)
+            valid_keys = {c.key for c in mapper.columns}
+            item_data = {k: v for k, v in raw_data.items() if k in valid_keys}
+
+            # Create and persist the item
             with self.session.begin():
                 db_item = self.model_class(**item_data)
                 self.session.add(db_item)
-                # Flush to check for constraint violations before commit
                 self.session.flush()
-                # commit happens automatically at the end of the with block
 
-            # Refresh outside the transaction
             self.session.refresh(db_item)
             return db_item
+
         except IntegrityError as e:
-            # Specific error for constraint violations
             self.session.rollback()
             raise ValueError(f"Integrity error: {str(e)}")
         except Exception as e:
@@ -75,23 +99,48 @@ class Repository(IRepository[T, TCreate, TUpdate], Generic[T, TCreate, TUpdate])
             raise ValueError(f"Error creating item: {str(e)}")
 
     def update(self, id: int, data: TUpdate) -> T:
+        try:
+            db_item = self.get_by_id(id)
+            if db_item is None:
+                raise ValueError(f"Item with id {id} not found")
+
+            # Get raw data from model
+            if hasattr(data, 'model_dump'):
+                raw_data = data.model_dump(exclude_unset=True)
+            elif hasattr(data, 'dict'):
+                raw_data = data.dict(exclude_unset=True)
+            else:
+                raw_data = data
+
+            # Filter valid columns
+            mapper = inspect(self.model_class)
+            valid_keys = {c.key for c in mapper.columns}
+            item_data = {k: v for k, v in raw_data.items() if k in valid_keys}
+
+            # Update the item
+            with self.session.begin():
+                for key, value in item_data.items():
+                    setattr(db_item, key, value)
+
+            self.session.refresh(db_item)
+            return db_item
+
+        except IntegrityError as e:
+            self.session.rollback()
+            raise ValueError(f"Integrity error: {str(e)}")
+        except Exception as e:
+            self.session.rollback()
+            raise ValueError(f"Error updating item: {str(e)}")
+
+    def delete(self, id: int) -> None:
         db_item = self.get_by_id(id)
         if db_item is None:
             raise ValueError(f"Item with id {id} not found")
-
-        if hasattr(data, 'dict'):
-            item_data = data.dict(exclude_unset=True)
-        else:
-            item_data = data
-            
-        for key, value in item_data.items():
-            setattr(db_item, key, value)
-
+        db_item.deleted_at = datetime.datetime.now()
         self.session.commit()
-        self.session.refresh(db_item)
-        return db_item
+        pass
 
-    def delete(self, id: int) -> None:
+    def force_delete(self, id: int) -> None:
         db_item = self.get_by_id(id)
         if db_item is None:
             raise ValueError(f"Item with id {id} not found")

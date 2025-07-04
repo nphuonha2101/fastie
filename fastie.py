@@ -855,12 +855,12 @@ class I{name.title()}Repository(IRepository):
 
 def _generate_repository_implementation_template(name):
     """Generate repository implementation template"""
-    return f'''from app.core.decorators.di import infrastructure
+    return f'''from app.core.decorators.di import repository
 from app.repositories.implements.repository import Repository
 from app.repositories.interfaces.{name.lower()}.i_{name.lower()}_repository import I{name.title()}Repository
 # from app.models.{name.lower()} import {name.title()}  # Uncomment when model exists
 
-@infrastructure
+@repository
 class {name.title()}Repository(Repository, I{name.title()}Repository):
     def __init__(self):
         # Update with actual model class
@@ -873,9 +873,15 @@ def _generate_model_template(name, fields):
     class_name = _to_class_name(name)
     template = f'''from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from app.models.abstract_model import AbstractModel
+from typing import Optional
+
+from pydantic import BaseModel
 
 class {class_name}(AbstractModel):
     __tablename__ = '{name.lower()}s'
+    
+    def get_response_model(self) -> Optional[BaseModel]:
+        return None
 
 '''
     

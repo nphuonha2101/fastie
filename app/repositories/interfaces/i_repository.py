@@ -44,5 +44,15 @@ class IRepository(ABC, Generic[T, TCreate, TUpdate]):
 
     @abstractmethod
     def delete(self, id: int) -> None:
+        """
+        Soft delete a record by ID.
+        :param id: id of the record to delete
+        :return:  None
+        """
+        pass
+
+
+    @abstractmethod
+    def force_delete(self, id: int) -> None:
         """Delete a record by ID."""
         pass

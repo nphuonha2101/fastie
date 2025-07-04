@@ -68,3 +68,11 @@ class Service(IService[T, TCreate, TUpdate, TResponse], Generic[T, TCreate, TUpd
                 return self.repository.delete(id)
         except Exception as e:
             raise RepositoryException('Error deleting record: ' + str(e))
+
+    def force_delete(self, id: int) -> None:
+        try:
+            with DbContext() as db_context:
+                self.repository.set_session(db_context.session)
+                return self.repository.force_delete(id)
+        except Exception as e:
+            raise RepositoryException('Error deleting record: ' + str(e))
