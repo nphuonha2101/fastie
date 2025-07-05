@@ -11,7 +11,7 @@ def to_snake_case(name):
 def to_title_case(name):
     """Convert name to Title Case"""
     return name.replace('_', ' ').replace('-', ' ').title()
-%>
+%>\
 from abc import ABC
 from app.api.v1.controllers.base_controller import BaseController
 from app.core.decorators.di import controller, inject

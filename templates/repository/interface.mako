@@ -5,7 +5,7 @@ def to_class_name(name):
 
 def to_title_case(name):
     return name.replace('_', ' ').replace('-', ' ').title()
-%>
+%>\
 from app.repositories.interfaces.i_repository import IRepository
 
 class I${to_class_name(name)}Repository(IRepository):

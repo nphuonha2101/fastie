@@ -5,7 +5,7 @@ def to_class_name(name):
 
 def to_snake_case(name):
     return name.lower().replace('-', '_')
-%>
+%>\
 from abc import ABC
 from typing import Optional, List, Any
 from app.core.decorators.di import service

@@ -5,7 +5,7 @@ def to_class_name(name):
 
 def to_title_case(name):
     return name.replace('_', ' ').replace('-', ' ').title()
-%>
+%>\
 from app.services.interfaces.i_service import IService
 
 class I${to_class_name(name)}Service(IService):
